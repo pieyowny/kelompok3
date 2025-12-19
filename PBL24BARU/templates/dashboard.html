@@ -1,54 +1,177 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Dashboard - Encryption Tool</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .container { max-width: 900px; margin: 0 auto; }
-    .card { border: 1px solid #ddd; padding: 20px; border-radius: 6px; margin-bottom: 16px; }
-    textarea { width: 100%; height: 140px; font-family: monospace; font-size: 14px; padding: 8px; }
-    .row { display:flex; gap:12px; align-items:center; margin-top:8px; }
-    button { padding: 8px 12px; }
-    .note { color: #666; font-size: 13px; margin-top: 8px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixGraf | Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* --- GLOBAL STYLES (Matches Index) --- */
+        body {
+            background-image: url("{{ url_for('static', filename='images/background index.gif') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive; /* Pixel font */
+            padding: 20px 0;
+        }
+
+        /* Glassmorphism Container */
+        .dashboard-container {
+            background-color: rgba(18, 18, 18, 0.9);
+            border: 4px solid #fff;
+            padding: 30px;
+            max-width: 900px;
+            margin: 20px auto;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        h1, h2 {
+            text-align: center;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 30px;
+            color: #00ffcc; /* Cyberpunk cyan */
+            font-size: 1.2rem;
+            line-height: 1.5;
+        }
+
+        /* --- FORM ELEMENTS --- */
+        label {
+            color: #ff00ff; /* Neon pink for labels */
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+        .form-control, textarea {
+            background-color: #000 !important;
+            color: #0f0 !important; /* Hacker green text */
+            border: 2px solid #555;
+            border-radius: 0;
+            font-family: monospace;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            background-color: #111 !important;
+            border-color: #00ffcc;
+            box-shadow: none;
+        }
+
+        .btn-pixel {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #007bff;
+            border: 2px solid #fff;
+            color: white;
+            padding: 10px 15px;
+            font-size: 0.7rem;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn-pixel:hover {
+            background-color: #0056b3;
+            transform: scale(1.02);
+            cursor: pointer;
+        }
+
+        .btn-warning {
+            background-color: #ff9900;
+            border: 2px solid #fff;
+            color: #000;
+        }
+
+        /* --- SECTIONS --- */
+        .section-box {
+            border-top: 2px dashed #555;
+            padding-top: 20px;
+            margin-top: 40px;
+        }
+        
+        .alert {
+            font-family: monospace;
+            font-size: 0.9rem;
+            border-radius: 0;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Text Encryption / Decryption</h1>
 
-    <!-- Substitution Cipher UI (kept) -->
-    <div class="card">
-      <h2>Substitution Cipher</h2>
+<div class="container dashboard-container">
+    <h1><a href="{{ url_for('index') }}" style="text-decoration:none; color:#00ffcc;">PixGraf System</a></h1>
 
-      <label for="inputText">Input</label>
-      <textarea id="inputText" placeholder="Masukkan teks di sini..."></textarea>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-info">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
-      <div class="row">
-        <button id="encSub">Encrypt (Substitution)</button>
-        <button id="decSub">Decrypt (Substitution)</button>
-        <button id="clearBtn">Clear</button>
-      </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>> Fernet Module (Secure)</h2>
+            <form method="POST">
+                {{ text_form.hidden_tag() }}
+                
+                <div class="form-group">
+                    <label>> INPUT TEXT</label>
+                    {{ text_form.text(class="form-control", placeholder="Enter secret data...", rows=3) }}
+                </div>
 
-      <label for="outputText" style="margin-top:12px; display:block;">Output</label>
-      <textarea id="outputText" readonly placeholder="Hasil akan tampil di sini..."></textarea>
+                <div class="form-row">
+                    <div class="col-md-8">
+                        <label>> KEY (32-byte Base64)</label>
+                        {{ text_form.key(class="form-control", placeholder="Insert Fernet Key") }}
+                    </div>
+                    <div class="col-md-4">
+                        <label>> ACTION</label>
+                        {{ text_form.action(class="form-control") }}
+                    </div>
+                </div>
 
-     
+                {{ text_form.submit(class="btn btn-pixel") }}
+            </form>
+
+            {% if processed_text %}
+            <div style="margin-top: 20px;">
+                <label style="color: #00ffcc;">>> SYSTEM OUTPUT:</label>
+                <textarea class="form-control" readonly rows="3">{{ processed_text }}</textarea>
+            </div>
+            {% endif %}
+        </div>
     </div>
 
-    <!-- Server-side processed text (if any) -->
-    {% if processed_text %}
-    <div class="card">
-      <h2>Server Result (Fernet)</h2>
-      <label for="serverResult">Result</label>
-      <textarea id="serverResult" readonly>{{ processed_text }}</textarea>
-      <p class="note">Hasil di atas berasal dari operasi server (Fernet). UI untuk memicu operasi ini sengaja disembunyikan.</p>
-    </div>
-    {% endif %}
-  </div>
+    <div class="section-box">
+        <h2>> Caesar Module (Basic)</h2>
+        <div class="form-group">
+            <label>> RAW INPUT</label>
+            <textarea id="inputText" class="form-control" rows="3" placeholder="Type here..."></textarea>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <button id="encSub" class="btn btn-pixel">Encrypt (+3)</button>
+            </div>
+            <div class="col-md-4">
+                <button id="decSub" class="btn btn-pixel btn-warning">Decrypt (-3)</button>
+            </div>
+            <div class="col-md-4">
+                <button id="clearBtn" class="btn btn-pixel" style="background-color: #dc3545;">Clear</button>
+            </div>
+        </div>
 
-  <script>
-    // Simple substitution: Caesar cipher (shift = 3). Adjust if you have a different substitution mapping.
+        <div style="margin-top: 20px;">
+            <label style="color: #00ffcc;">>> LOCAL OUTPUT:</label>
+            <textarea id="outputText" class="form-control" readonly rows="3"></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Existing Client-Side Logic (Preserved) ---
     function caesarShift(s, shift) {
       return s.replace(/[A-Za-z]/g, function(c) {
         const base = c <= 'Z' ? 65 : 97;
@@ -70,6 +193,7 @@
       document.getElementById('inputText').value = '';
       document.getElementById('outputText').value = '';
     });
-  </script>
+</script>
+
 </body>
 </html>
